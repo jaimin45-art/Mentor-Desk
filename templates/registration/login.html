@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <h2 style="color: var(--primary-color);">Welcome Back</h2>
+        <p style="text-align: center; margin-bottom: 20px; color: var(--text-muted);">Enter your Username, Email, or Enrollment No
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 10px;">Please enter your
+                <strong>Username</strong> and Password.
+            </p>
+            {{ form.as_p }}
+            <button type="submit" class="btn" style="width: 100%; margin-top: 20px;">Login</button>
+        </form>
+
+        <p style="margin-top: 20px; color: #64748b;">
+            Don't have an account? <a href="{% url 'unified_register' %}"
+                style="color: var(--secondary-color);">Register</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

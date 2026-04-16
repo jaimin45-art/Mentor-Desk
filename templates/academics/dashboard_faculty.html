@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 style="color: var(--primary-color);">Faculty Dashboard</h2>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3>My Subjects</h3>
+            <a href="{% url 'subject_add' %}" class="btn" style="padding: 5px 15px; font-size: 0.9rem;">+ Add
+                Subject</a>
+        </div>
+        {% if subjects %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
+                    <th style="padding: 12px; color: var(--text-muted); font-weight: 600;">Subject Name</th>
+                    <th style="padding: 12px; color: var(--text-muted); font-weight: 600;">Class</th>
+                    <th style="padding: 12px; color: var(--text-muted); font-weight: 600;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+                    <td style="padding: 15px; color: var(--text-main); font-weight: 500;">{{ subject.name }}</td>
+                    <td style="padding: 15px;">
+                        <span style="font-size: 0.85rem; background: rgba(139, 92, 246, 0.1); color: var(--secondary-color); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(139, 92, 246, 0.2);">
+                            {{ subject.assigned_class.name }}
+                        </span>
+                    </td>
+                    <td style="padding: 15px;">
+                        <a href="{% url 'mark_attendance' subject.id %}" class="btn">Mark Attendance</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>You are not assigned to any subjects yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

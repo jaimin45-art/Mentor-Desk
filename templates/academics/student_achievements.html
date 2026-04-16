@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h2 style="color: var(--primary-color); margin-bottom: 5px;">My Achievements</h2>
+            <p style="color: #94a3b8;">Showcase of your academic and extracurricular success</p>
+        </div>
+        <div>
+            <a href="{% url 'achievement_submit' %}" class="btn" style="margin-right: 10px;">+ Add New</a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline">Back</a>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+        {% for achievement in achievements %}
+        <div class="card" style="display: flex; flex-direction: column; height: 100%;">
+            <div style="flex-grow: 1;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span style="font-size: 0.8rem; color: #64748b;">{{ achievement.submitted_on|date:"M d, Y" }}</span>
+                    <i style="color: #fbbf24;" class="icon-trophy">🏆</i>
+                </div>
+                <h3 style="font-size: 1.25rem; margin-bottom: 10px; color: #f1f5f9;">{{ achievement.title }}</h3>
+                <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.5;">
+                    {{ achievement.description|truncatewords:30 }}
+                </p>
+            </div>
+
+            {% if achievement.certificate %}
+            <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #1e293b;">
+                <a href="{{ achievement.certificate.url }}" target="_blank"
+                    style="color: var(--secondary-color); text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+                    <span>View Certificate</span>
+                    <span style="font-size: 1.2em;">→</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div
+            style="grid-column: 1 / -1; text-align: center; padding: 50px; background: rgba(30, 41, 59, 0.5); border-radius: 12px; border: 1px dashed #475569;">
+            <p style="color: #94a3b8; font-size: 1.1rem; margin-bottom: 20px;">You haven't submitted any achievements
+                yet.</p>
+            <a href="{% url 'achievement_submit' %}" class="btn">Submit your first achievement</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

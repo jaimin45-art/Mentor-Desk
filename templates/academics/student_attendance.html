@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <div>
+            <h2 style="color: var(--primary-color); margin-bottom: 5px;">My Attendance</h2>
+            <p style="color: #94a3b8;">Detailed breakdown of your class attendance</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline">Back to Dashboard</a>
+    </div>
+
+    <!-- Subject Wise Summary -->
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px;">
+        <div class="card">
+            <h3>Subject Overview</h3>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #334155;">
+                            <th style="padding: 12px; text-align: left; color: #cbd5e1;">Subject</th>
+                            <th style="padding: 12px; text-align: center; color: #cbd5e1;">Total</th>
+                            <th style="padding: 12px; text-align: center; color: #cbd5e1;">Present</th>
+                            <th style="padding: 12px; text-align: right; color: #cbd5e1;">%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in subject_data %}
+                        <tr style="border-bottom: 1px solid #1e293b;">
+                            <td style="padding: 12px; color: #e2e8f0;">{{ item.subject }}</td>
+                            <td style="padding: 12px; text-align: center; color: #94a3b8;">{{ item.total }}</td>
+                            <td style="padding: 12px; text-align: center; color: #22c55e;">{{ item.present }}</td>
+                            <td style="padding: 12px; text-align: right;">
+                                <span style="
+                                    display: inline-block;
+                                    padding: 4px 8px;
+                                    border-radius: 4px;
+                                    font-size: 0.85rem;
+                                    font-weight: 600;
+                                    background: {% if item.percentage >= 75 %}rgba(34, 197, 94, 0.1){% else %}rgba(239, 68, 68, 0.1){% endif %};
+                                    color: {% if item.percentage >= 75 %}#22c55e{% else %}#ef4444{% endif %};
+                                ">
+                                    {{ item.percentage|floatformat:1 }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Attendance Analysis</h3>
+            <div style="height: 300px; display: flex; align-items: center; justify-content: center;">
+                <canvas id="detailAttendanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed History -->
+    <div class="card">
+        <h3>Recent History</h3>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #334155;">
+                        <th style="padding: 12px; text-align: left; color: #cbd5e1;">Date</th>
+                        <th style="padding: 12px; text-align: left; color: #cbd5e1;">Subject</th>
+                        <th style="padding: 12px; text-align: left; color: #cbd5e1;">Status</th>
+                        <th style="padding: 12px; text-align: left; color: #cbd5e1;">Marked By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr style="border-bottom: 1px solid #1e293b; transition: background 0.2s;">
+                        <td style="padding: 12px; color: #94a3b8;">{{ record.date }}</td>
+                        <td style="padding: 12px; color: #e2e8f0; font-weight: 500;">{{ record.subject.name }}</td>
+                        <td style="padding: 12px;">
+                            <span style="
+                                display: inline-block;
+                                padding: 4px 8px;
+                                border-radius: 4px;
+                                font-size: 0.8rem;
+                                font-weight: 600;
+                                {% if record.status == 'PRESENT' %}
+                                    background: rgba(34, 197, 94, 0.1); color: #22c55e;
+                                {% else %}
+                                    background: rgba(239, 68, 68, 0.1); color: #ef4444;
+                                {% endif %}
+                            ">
+                                {{ record.status }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px; color: #64748b; font-size: 0.9rem;">
+                            {{ record.marked_by.get_full_name|default:record.marked_by.username }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="padding: 20px; text-align: center; color: #64748b;">No records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Prepare data for Chart
+    const subjects = [{% for item in subject_data %}'{{ item.subject }}', {% endfor %}];
+    const presentData = [{% for item in subject_data %}{ { item.present } }, {% endfor %}];
+    const absentData = [{% for item in subject_data %}{ { item.total } } - {{ item.present }}, {% endfor %}];
+
+    const ctx = document.getElementById('detailAttendanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: subjects,
+            datasets: [
+                {
+                    label: 'Present',
+                    data: presentData,
+                    backgroundColor: '#22c55e',
+                    borderRadius: 4,
+                },
+                {
+                    label: 'Absent',
+                    data: absentData,
+                    backgroundColor: '#ef4444',
+                    borderRadius: 4,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, grid: { color: '#334155' }, ticks: { color: '#cbd5e1' } },
+                y: { stacked: true, grid: { color: '#334155' }, ticks: { color: '#cbd5e1' } }
+            },
+            plugins: {
+                legend: { labels: { color: '#cbd5e1' } }
+            }
+        }
+    });
+</script>
+{% endblock %}

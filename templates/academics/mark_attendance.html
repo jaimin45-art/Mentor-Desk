@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2 style="color: var(--primary-color);">Mark Attendance - {{ subject.name }}</h2>
+    <p style="color: var(--text-muted); margin-bottom: 20px;">
+        <span style="font-size: 0.9rem; background: rgba(139, 92, 246, 0.1); color: var(--secondary-color); padding: 4px 10px; border-radius: 6px; font-weight: 500;">
+            <i class="icon-book"></i> Class: {{ subject.assigned_class.name }}
+        </span>
+    </p>
+
+    <div class="card">
+        <form method="post">
+            {% csrf_token %}
+            <div style="margin-bottom: 20px;">
+                <label>Date:</label>
+                <input type="date" name="date" value="{{ date|date:'Y-m-d' }}" required>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
+                        <th style="padding: 10px; color: var(--text-muted);">Enrollment No</th>
+                        <th style="padding: 10px; color: var(--text-muted);">Student Name</th>
+                        <th style="padding: 10px; color: var(--text-muted);">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for profile in students %}
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 10px; font-family: monospace; color: var(--text-main);">{{ profile.roll_number }}</td>
+                        <td style="padding: 10px; color: var(--text-main); font-weight: 500;">{{ profile.user.first_name }} {{ profile.user.last_name }}</td>
+                        <td style="padding: 10px; color: var(--text-main);">
+                            <label style="margin-right: 15px; cursor: pointer;">
+                                <input type="radio" name="student_{{ profile.user.id }}" value="PRESENT" checked
+                                    style="width: auto;"> Present
+                            </label>
+                            <label style="cursor: pointer;">
+                                <input type="radio" name="student_{{ profile.user.id }}" value="ABSENT"
+                                    style="width: auto;"> Absent
+                            </label>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">No students found in this class.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <button type="submit" class="btn" style="margin-top: 20px;">Save Attendance</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

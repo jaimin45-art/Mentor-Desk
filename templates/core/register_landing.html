@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box" style="width: 600px;">
+        <h2 style="color: var(--primary-color);">Join MentorDesk</h2>
+        <p style="color: var(--text-muted); margin-bottom: 40px;">Choose your role to continue</p>
+        
+        <div style="display: flex; gap: 20px; justify-content: center;">
+            <a href="{% url 'register_student' %}" class="btn" style="flex: 1; padding: 20px;">
+                <h3 style="margin-bottom: 5px;">Student</h3>
+                <small>Track attendance & achievements</small>
+            </a>
+            <a href="{% url 'register_mentor' %}" class="btn" style="flex: 1; padding: 20px; background: linear-gradient(to right, #ec4899, #8b5cf6);">
+                <h3 style="margin-bottom: 5px;">Mentor</h3>
+                <small>Guide & Monitor students</small>
+            </a>
+            <a href="{% url 'register_faculty' %}" class="btn" style="flex: 1; padding: 20px; background: linear-gradient(to right, #06b6d4, #3b82f6);">
+                <h3 style="margin-bottom: 5px;">Faculty</h3>
+                <small>Manage classes & teaching</small>
+            </a>
+        </div>
+        
+        <p style="margin-top: 40px; color: #64748b;">
+            Already have an account? <a href="{% url 'login' %}" style="color: var(--secondary-color);">Login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="color: var(--primary-color); margin: 0;">Mentor Dashboard</h2>
+        <a href="{% url 'send_notification' %}" class="btn">
+            📢 Send Announcement
+        </a>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Classes Card -->
+        <div class="card">
+            <h3><i class="icon-book"></i> My Classes</h3>
+            <ul style="list-style: none; padding: 0;">
+                {% for cls in classes %}
+                <li
+                    style="padding: 12px; border-bottom: 1px solid var(--border-color); color: var(--text-main); display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: 500;">{{ cls.name }}</span>
+                    <span
+                        style="font-size: 0.8rem; background: rgba(56, 189, 248, 0.1); color: var(--primary-color); padding: 2px 8px; border-radius: 4px;">Assigned</span>
+                </li>
+                {% empty %}
+                <li style="color: var(--text-muted); padding: 10px;">No classes assigned.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Pending Leaves Card -->
+        <div class="card">
+            <h3><i class="icon-clock"></i> Pending Leave Requests</h3>
+            {% if pending_leaves %}
+            <ul style="list-style: none; padding: 0;">
+                {% for leave in pending_leaves %}
+                <li
+                    style="background: rgba(79, 70, 229, 0.02); padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <strong style="color: var(--text-main);">{{ leave.student.first_name }} {{
+                                leave.student.last_name }}</strong>
+                            <div style="margin-top: 5px; font-size: 0.9rem; color: var(--text-muted);">{{ leave.reason
+                                }}</div>
+                            <div style="margin-top: 5px; font-size: 0.8rem; color: var(--text-muted);">
+                                {{ leave.start_date }} to {{ leave.end_date }}
+                            </div>
+                            {% if leave.image_proof %}
+                            <div style="margin-top: 8px;">
+                                <a href="{{ leave.image_proof.url }}" target="_blank"
+                                    style="color: var(--secondary-color); font-size: 0.85rem; text-decoration: none; display: flex; align-items: center; gap: 5px;">
+                                    📎 View Proof
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <form action="{% url 'leave_review' leave.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="approve">
+                                <button type="submit" class="btn"
+                                    style="width: 100%; padding: 6px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #22c55e, #16a34a);">Approve</button>
+                            </form>
+                            <form action="{% url 'leave_review' leave.id %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="reject">
+                                <button type="submit" class="btn"
+                                    style="width: 100%; padding: 6px 12px; font-size: 0.8rem; background: linear-gradient(135deg, #ef4444, #dc2626);">Reject</button>
+                            </form>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p style="color: var(--text-muted); text-align: center; padding: 20px;">No pending leave requests.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Student List Section -->
+    <div class="card" style="margin-top: 30px;">
+        <h3><i class="icon-people"></i> My Students</h3>
+        {% if class_students %}
+        {% for cls, students in class_students.items %}
+        <div style="margin-bottom: 30px;">
+            <h4
+                style="color: var(--secondary-color); margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                {{ cls.name }}
+                <span
+                    style="font-size: 0.75rem; background: rgba(139, 92, 246, 0.1); color: var(--secondary-color); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.2);">
+                    {{ students|length }} Students
+                </span>
+            </h4>
+
+            <div style="overflow-x: auto; border-radius: 12px; border: 1px solid var(--border-color);">
+                <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+                    <thead>
+                        <tr style="background: rgba(79, 70, 229, 0.03); text-align: left;">
+                            <th style="padding: 15px; color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">
+                                Enrollment No</th>
+                            <th style="padding: 15px; color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">
+                                Name</th>
+                            <th style="padding: 15px; color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">
+                                Email</th>
+                            <th style="padding: 15px; color: var(--text-muted); font-weight: 600; font-size: 0.9rem;">
+                                Attendance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in students %}
+                        <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;">
+                            <td style="padding: 15px; color: var(--text-main); font-family: monospace;">{{ item.profile.roll_number }}</td>
+                            <td style="padding: 15px; color: var(--text-main); font-weight: 500;">
+                                {{ item.profile.user.first_name }} {{ item.profile.user.last_name }}
+                            </td>
+                            <td style="padding: 15px; color: var(--text-muted);">{{ item.profile.user.email }}</td>
+                            <td style="padding: 15px;">
+                                <div style="margin-bottom: 8px;">
+                                    <span style="background: {% if item.attendance_percentage >= 75 %}#ecfdf5{% else %}#fef2f2{% endif %}; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; color: {% if item.attendance_percentage >= 75 %}#059669{% else %}#e11d48{% endif %}; font-weight: 600;">
+                                        Overall: {{ item.attendance_percentage|floatformat:1 }}%
+                                    </span>
+                                </div>
+                                {% if item.subject_breakdown %}
+                                <div style="font-size: 0.8rem; display: flex; flex-direction: column; gap: 4px; max-width: 200px;">
+                                    {% for sub in item.subject_breakdown %}
+                                    <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border-color); padding-bottom: 2px;">
+                                        <span style="color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px;" title="{{ sub.name }}">{{ sub.name }}:</span>
+                                        <span style="white-space: nowrap;">
+                                            <span style="color: #059669; font-weight: 600;" title="Present">{{ sub.present }}P</span> / 
+                                            <span style="color: #e11d48; font-weight: 600;" title="Absent">{{ sub.absent }}A</span>
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div style="font-size: 0.8rem; color: var(--text-muted);">No attendance marked yet.</div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="padding: 20px; text-align: center; color: var(--text-muted);">No
+                                students in this class.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div style="text-align: center; padding: 40px;">
+            <p style="color: var(--text-muted); font-size: 1.1rem;">No classes assigned or no students found.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

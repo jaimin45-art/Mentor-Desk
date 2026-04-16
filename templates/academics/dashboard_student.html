@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div style="margin-bottom: 30px;">
+        <h2 style="color: var(--primary-color); margin: 0;">Student Dashboard</h2>
+        <p style="color: var(--text-muted); margin-top: 5px;">Welcome back, {{ user.first_name }}</p>
+        <div style="display: flex; gap: 15px; margin-top: 8px;">
+            <span style="font-size: 0.9rem; background: rgba(79, 70, 229, 0.1); color: var(--primary-color); padding: 4px 10px; border-radius: 6px; font-weight: 500;">
+                <i class="icon-user"></i> Enrollment No: {{ user.student_profile.roll_number }}
+            </span>
+            {% if user.student_profile.assigned_class %}
+            <span style="font-size: 0.9rem; background: rgba(139, 92, 246, 0.1); color: var(--secondary-color); padding: 4px 10px; border-radius: 6px; font-weight: 500;">
+                <i class="icon-book"></i> Class: {{ user.student_profile.assigned_class.name }}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Notifications Section -->
+    <div class="card" style="margin-bottom: 30px;">
+        <h3><i class="icon-bell"></i> Notifications</h3>
+        <div style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+            <ul style="list-style: none; padding: 0;">
+                {% for note in notifications %}
+                <li style="border-bottom: 1px solid var(--border-color); padding: 15px 0;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <strong style="color: var(--text-main); font-size: 1.05rem;">{{ note.title }}</strong>
+                        <small style="color: var(--text-muted); font-size: 0.8rem;">{{ note.created_at|timesince }}
+                            ago</small>
+                    </div>
+                    <p style="color: var(--text-muted); margin: 5px 0 10px; font-size: 0.95rem; line-height: 1.5;">{{ note.message }}</p>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span
+                            style="font-size: 0.8rem; background: rgba(139, 92, 246, 0.1); color: var(--secondary-color); padding: 2px 8px; border-radius: 4px;">
+                            From: {{ note.sender.get_full_name|default:note.sender.username }}
+                        </span>
+                    </div>
+                </li>
+                {% empty %}
+                <li style="text-align: center; padding: 20px; color: var(--text-muted);">No new notifications.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+
+        <!-- Attendance Card -->
+        <div class="card" style="display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Attendance</h3>
+                <a href="{% url 'student_attendance_detail' %}"
+                    style="font-size: 0.9rem; color: var(--primary-color); text-decoration: none; font-weight: 500;">View
+                    Details &rarr;</a>
+            </div>
+
+            <div
+                style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="position: relative; height: 180px; width: 180px; margin-bottom: 15px;">
+                    <canvas id="attendanceChart"></canvas>
+                    <div
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                        <span style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);">
+                            {{ attendance_percentage|default:0|stringformat:".0f" }}%
+                        </span>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">Present</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Achievements -->
+        <div class="card">
+            <h3>Quick Actions</h3>
+            <div style="display: grid; gap: 15px;">
+                <a href="{% url 'leave_apply' %}" class="btn"
+                    style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    📝 Apply for Leave
+                </a>
+                <a href="{% url 'achievement_submit' %}" class="btn btn-outline"
+                    style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    🏆 Upload Achievement
+                </a>
+                <a href="{% url 'student_achievements_detail' %}" class="btn btn-outline"
+                    style="width: 100%; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; border-color: rgba(251, 191, 36, 0.5); color: #fbbf24;">
+                    🌟 View My Achievements
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card">
+            <h3>Recent Activity</h3>
+            <ul style="list-style: none; padding: 0;">
+                {% for record in recent_attendance %}
+                <li
+                    style="border-bottom: 1px solid var(--border-color); padding: 12px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 500; color: var(--text-main);">{{ record.subject.name }}</div>
+                        <small style="color: var(--text-muted);">{{ record.date }}</small>
+                    </div>
+                    <span style="padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;
+                        {% if record.status == 'PRESENT' %}
+                            background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2);
+                        {% else %}
+                            background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);
+                        {% endif %}">
+                        {{ record.status }}
+                    </span>
+                </li>
+                {% empty %}
+                <li style="text-align: center; padding: 20px; color: var(--text-muted);">No recent activity.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Recent Leave Applications -->
+        <div class="card">
+            <h3>Leave Applications</h3>
+            <ul style="list-style: none; padding: 0;">
+                {% for leave in recent_leaves %}
+                <li
+                    style="border-bottom: 1px solid var(--border-color); padding: 12px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 500; color: var(--text-main);">{{ leave.reason|truncatewords:5 }}</div>
+                        <small style="color: var(--text-muted);">{{ leave.applied_on|date:"M d, Y" }}</small>
+                    </div>
+                    <span style="padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 600;
+                        {% if leave.status == 'APPROVED' %}
+                            background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.2);
+                        {% elif leave.status == 'REJECTED' %}
+                            background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2);
+                        {% else %}
+                            background: rgba(234, 179, 8, 0.1); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.2);
+                        {% endif %}">
+                        {{ leave.status }}
+                    </span>
+                </li>
+                {% empty %}
+                <li style="text-align: center; padding: 20px; color: var(--text-muted);">No leave history.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Recent Achievements -->
+        <div class="card">
+            <h3>Recent Achievements</h3>
+            <ul style="list-style: none; padding: 0;">
+                {% for achievement in recent_achievements %}
+                <li
+                    style="border-bottom: 1px solid var(--border-color); padding: 12px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 500; color: var(--text-main);">{{ achievement.title }}</div>
+                        <small style="color: var(--text-muted);">{{ achievement.submitted_on|date:"M d, Y" }}</small>
+                    </div>
+                    <span style="padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; background: rgba(56, 189, 248, 0.1); color: var(--primary-color); border: 1px solid rgba(56, 189, 248, 0.2);">
+                        Submitted
+                    </span>
+                </li>
+                {% empty %}
+                <li style="text-align: center; padding: 20px; color: var(--text-muted);">No achievements uploaded.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('attendanceChart').getContext('2d');
+    const attendanceChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Present', 'Absent'],
+            datasets: [{
+                data: [{{ attendance_present }}, {{ attendance_total }} - {{ attendance_present }}],
+    backgroundColor: ['#4f46e5', '#e2e8f0'], // Indigo & Slate 200
+        borderWidth: 0,
+            hoverOffset: 4
+            }]
+        },
+    options: {
+        responsive: true,
+            maintainAspectRatio: false,
+                cutout: '75%',
+                    plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#0f172a',
+                        bodyColor: '#64748b',
+                            padding: 10,
+                                cornerRadius: 8,
+                                    borderColor: '#e2e8f0',
+                                        borderWidth: 1
+            }
+        }
+    }
+    });
+</script>
+{% endblock %}
